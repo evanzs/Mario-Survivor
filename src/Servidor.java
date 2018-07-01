@@ -11,7 +11,7 @@ class Servidor {
   }
   
   Servidor() {
-    final int porto = 48;
+    final int porto = 90;
 
     try {
       serverSocket = new ServerSocket(porto);
@@ -74,12 +74,29 @@ class Dados {
   static final int LARG_CLIENTE = 1000;
   static final int ALTU_CLIENTE = 750;
   static final int NUM_MAX_PLATAFORMA = 4;
+  static final int LARG_PLAT = 170;
+  
+  //Limites do eixo Y jogaveis
+  static final int LIMITE_LATERALE = 20;
+  static final int LIMITE_LATERALD = 980;
+  
+  //Limites do eixo X Jogaveis
+  static final int LIMITE_INF = 600;
+  static final int LIMITE_SUP = 20;
+  
+  //VELOCIDADE DA QUEDA
+  static final int VEL_QUEDA = 10;
+  
+  boolean EMCIMA_PLATAFORMA = false; 
+  
   
   
   class EstadoJogador {
     char c;
     int x, y;
     int dx, dy;
+    
+    int lx;
   }
   
   class Plataforma {
@@ -95,18 +112,19 @@ class Dados {
   Dados() {
 	 
 	 estado[0] = new EstadoJogador();
-	 estado[0].c = '@';
-	 estado[0].x = 30;
-	 estado[0].y = 600;
-	 estado[0].dx = 3;
-	 estado[0].dy = 3;
+	 estado[0].c   = '@';
+	 estado[0].x   = 30;
+	 estado[0].y   = 600;
+	 estado[0].dx  = 3;
+	 estado[0].dy  = 3;
+	
 	 
 	 estado[1] = new EstadoJogador();
 	 estado[1].c = '@';
 	 estado[1].x = 200;
 	 estado[1].y = 600;
-	 estado[1].dx = 3;
-	 estado[1].dy = 3;
+	 estado[1].dx = 10;
+	 estado[1].dy = 10;
 	 
 	 Random random  = new Random();
 	 
@@ -117,21 +135,27 @@ class Dados {
 		
 		 // for? 
 		 
+		 
+		 //fixando a alltura das plataformas para melhor a jogabilidade e a mecanica		 
+		 //Nota: as alturas estão fixas para ficarem proximas do pulo do personagem
+		 
 		 // top a direita
-		 plataforma[1].x = 900;
-		 plataforma[1].y = 200;
+		 plataforma[1].x  = 200;
+		 plataforma[1].y  = 200;
+		 plataforma[1].lx = plataforma[1].x+LARG_PLAT;  // largura da plataforma
 		 
 		 //topo a esquerda
 		 plataforma[2].x = 550;
-		 plataforma[2].y = 450;
-		 
+		 plataforma[2].y = 560;
+		 plataforma[2].lx = plataforma[2].x+ LARG_PLAT; 
 		 
 		 plataforma[3].x = 100;
 		 plataforma[3].y = 400;
+		 plataforma[3].lx = plataforma[3].x+ LARG_PLAT;
 		 
 		 plataforma[0].x = 300;
 		 plataforma[0].y = 200;
-	   
+		 plataforma[0].lx = plataforma[0].x+ LARG_PLAT;
     
   }
   
@@ -191,12 +215,71 @@ class Dados {
     estado[id].c = c;
   }
   
-  synchronized void alteraDados(int x, int y, int id) {
-   
-    	estado[id].x += x;
-    	estado[id].y += y;
-    
-  }
+  synchronized void alteraDados(int x, int y, int id,char c) {
+       if (c == 'D')
+       {
+    	   if (estado[id].x + x >= LIMITE_LATERALD)
+    	   {
+    		   estado[id].x = LIMITE_LATERALD;
+    		   estado[id].y +=y; 
+    	   }else
+    	   {      	   
+    		   estado[id].x += x;
+          	   estado[id].y += y;   	   
+    	   }
+       }
+    	 if ( c == 'E')
+    	 {
+    		 if (estado[id].x +x < LIMITE_LATERALE)
+    		 {
+    			 estado[id].x = LIMITE_LATERALE ;
+            	 estado[id].y += y; 
+    		 }
+    	 }
+    	 
+        
+        if ( c == 'C')
+        {
+        	
+        	
+        	// pula só se estiver no chão
+        	if ( estado[id].y  == LIMITE_INF || EMCIMA_PLATAFORMA == true)
+        	{
+        		estado[id].x +=x;
+        		estado[id].y +=y;        	   	
+        			
+            }
+        	else
+        	{
+        		estado[id].x +=x;
+        		estado[id].y =estado[id].y;
+        	}        
+        	       
+        }
+        
+        
+        if (c == 'E')
+        {
+        	// não sair pela lateral
+        	if (estado[id].x+x < LIMITE_LATERALE)
+        	{
+        		estado[id].x = LIMITE_LATERALE;        		
+        	}
+        	else
+        	{
+        		estado[id].x += x;
+        	}
+        	
+        	
+        	
+        	
+        }
+ }
+       
+	    
+        
+        
+  
   
   synchronized void alteraDadosVelocidade(int dx, int dy, int id) {
     estado[id].dx = dx;
@@ -207,11 +290,34 @@ class Dados {
    * elementos na arena do jogo são atualizados aqui.
    */
   synchronized void logicaDoJogo() {
+	
     for (int i = 0; i < NUM_MAX_JOGADORES; i++) {
-    
-     if ( estado[i].y < 600 )
-    	 estado[i].y += estado[i].dx ; 
-    
+       	// logica de quedra / ou
+    	if ( estado[i].y < 600)	    		
+    	{
+    		
+    		// mesma posição da plataforma 1
+    		if ( estado[i].x >= plataforma[1].x && estado[i].x <plataforma[1].lx)
+    		{
+    			// acima
+    			if (estado[i].y < plataforma[1].y )
+    			{
+    				if ( estado[i].y + VEL_QUEDA > plataforma[1].y)
+    				{
+    					estado[i].y = plataforma[1].y-60;
+    					
+    				}
+    				
+    				
+    			}else estado[i].y += VEL_QUEDA;
+    			
+    		
+    			
+    		}else estado[i].y += VEL_QUEDA;
+    		
+    		
+    		
+    	}
     }
   }
 }
@@ -237,21 +343,19 @@ class Recebendo extends Thread {
     try {
       while (true) {
         char c = is[idCliente].readChar();
-        if (c == 'B')
-        {
-        	dados.alteraDados(0,20,idCliente);
-        }
+        
         if (c == 'C')
         {
-        	dados.alteraDados(0,-60,idCliente);
+        	
+        	dados.alteraDados(0,-160,idCliente,c);
         }
         if (c == 'D')
         {
-        	dados.alteraDados(20, 0,idCliente);
+        	dados.alteraDados(20, 0,idCliente,c);
         }
         if (c == 'E')
         {
-        	dados.alteraDados(-20, 0,idCliente);
+        	dados.alteraDados(-20, 0,idCliente,c);
         }
         dados.alteraDados(c, idCliente);
       }

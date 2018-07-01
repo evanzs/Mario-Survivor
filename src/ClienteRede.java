@@ -9,7 +9,7 @@ import java.io.*;
 import java.net.*;
 
 class ClienteRede extends JFrame {
-  final int porto = 48;
+  final int porto = 90;
   Image player1,player2;
   Image plataforma1,plataforma2,plataforma3,plataforma4;
   
@@ -72,17 +72,17 @@ class ClienteRede extends JFrame {
       g.drawImage(bg, 0, 0, getSize().width, getSize().height, this);
       
       //você
-      g.drawImage(player1, posX,posY, 60,60, this);
+     g.drawImage(player1, posX,posY, 60,60, this);
       g.drawString(texto, posX, posY);
       
       //adversario
       g.drawImage(player2, posXAd,posYAd, 60,60, this);
       g.drawString(textoAdversario, posXAd, posYAd);
       
-      g.drawImage(plataforma1,platX1,platY1,170,32,this);
+     // g.drawImage(plataforma1,platX1,platX2,170,32,this);
       g.drawImage(plataforma2,platX2,platY2,170,32,this);
-      g.drawImage(plataforma3,platX3,platY3,170,32,this);
-      g.drawImage(plataforma4,platX4,platY4,170,32,this);
+     // g.drawImage(plataforma3,platX3,platY3,170,32,this);
+      //g.drawImage(plataforma4,platX4,platY4,170,32,this);
        
      
       Toolkit.getDefaultToolkit().sync();
