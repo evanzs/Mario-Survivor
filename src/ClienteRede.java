@@ -7,22 +7,24 @@ import javax.swing.*;
 
 import java.io.*;
 import java.net.*;
+import java.util.*;
 
 class ClienteRede extends JFrame {
-  final int porto = 90;
+  final int porto = 123;
   Image player1,player2;
   Image plataforma1,plataforma2,plataforma3,plataforma4;
+  Image bomba0,bomba1,bomba2,bomba3;
   
   Image bg;
   
   
   Desenho des = new Desenho();
   int posX = 0, posY = 0;
-  String texto = "";
+  String texto = "O";
   int posXAd = 0, posYAd = 0;
-  String textoAdversario = "";
-  DataOutputStream os = null;
-  DataInputStream is = null;
+  String textoAdversario = "O";
+  PrintStream os = null;
+  Scanner is = null;
   Socket socket = null;
   
   int platX1,platY1;
@@ -30,19 +32,15 @@ class ClienteRede extends JFrame {
   int platX3,platY3;
   int platX4,platY4;
   
+  int bombaX0,bombaY0,bombaX1,bombaY1,bombaX2,bombaY2,bombaX3,bombaY3;
   
-  class Plataforma {
-	  int x,y;
-  }
-
-  Plataforma   plataforma[] = new Plataforma[4];
  
- 
-   
+  
   class Desenho extends JPanel {
     Desenho() {
     
     
+    	
     	
     	try {
     		player1   = ImageIO.read(new File("run1p1.png"));
@@ -53,8 +51,14 @@ class ClienteRede extends JFrame {
           
              plataforma1= ImageIO.read(new File("platG.png"));
              plataforma2= ImageIO.read(new File("platG.png"));
-             plataforma3= ImageIO.read(new File("platP.png"));
-             plataforma4= ImageIO.read(new File("platP.png"));
+             plataforma3= ImageIO.read(new File("platG.png"));
+             plataforma4= ImageIO.read(new File("platG.png"));
+             
+             
+             bomba0= ImageIO.read(new File("balaE.png"));
+             bomba1= ImageIO.read(new File("balaD.png"));
+             bomba2= ImageIO.read(new File("balaE.png"));
+             bomba3= ImageIO.read(new File("balaD.png"));
             
           } catch (IOException e) {
             JOptionPane.showMessageDialog(this, "A imagem nÃ£o pode ser carregada!\n" + e, "Erro", JOptionPane.ERROR_MESSAGE);
@@ -79,11 +83,16 @@ class ClienteRede extends JFrame {
       g.drawImage(player2, posXAd,posYAd, 60,60, this);
       g.drawString(textoAdversario, posXAd, posYAd);
       
-     // g.drawImage(plataforma1,platX1,platX2,170,32,this);
+      g.drawImage(plataforma1,platX1,platY1,170,32,this);
       g.drawImage(plataforma2,platX2,platY2,170,32,this);
-     // g.drawImage(plataforma3,platX3,platY3,170,32,this);
-      //g.drawImage(plataforma4,platX4,platY4,170,32,this);
-       
+      g.drawImage(plataforma3,platX3,platY3,170,32,this);
+      g.drawImage(plataforma4,platX4,platY4,170,32,this);
+      
+      
+      g.drawImage(bomba1,bombaX1,bombaY2,30,30,this);
+      g.drawImage(bomba2,bombaX2,bombaY2,30,30,this);
+      g.drawImage(bomba3,bombaX3,bombaY3,30,30,this);
+      g.drawImage(bomba0,bombaX0,bombaY0,30,30,this);
      
       Toolkit.getDefaultToolkit().sync();
     }
@@ -98,10 +107,10 @@ class ClienteRede extends JFrame {
       socket = new Socket("127.0.0.1",porto);
       // Eu usei DataOutputstream, mas esta classe é proibida no seu 
       // trabalho! Tente usar PrintStream
-      os = new DataOutputStream(socket.getOutputStream());
+      os = new PrintStream(socket.getOutputStream());
       // Eu usei DataInputstream, mas esta classe é proibida no seu
       // trabalho! Tente usar Scanner
-      is = new DataInputStream(socket.getInputStream());
+      is = new Scanner(socket.getInputStream());
     } catch (UnknownHostException e) {
       // coloque um JOptionPane para mostrar esta mensagem de erro
       System.err.println("Servidor desconhecido.");
@@ -121,29 +130,44 @@ class ClienteRede extends JFrame {
             // um caracter extra pode ser usado para indicar o tipo de
             // dados está sendo recebido.
         	  
-            texto = String.valueOf(is.readChar());
-            posX = is.readInt();
-            posY = is.readInt();
+            texto = is.next();
+            posX = is.nextInt();
+            posY = is.nextInt();
             
-            textoAdversario = String.valueOf(is.readChar());
-            posXAd = is.readInt();
-            posYAd = is.readInt(); 
+            textoAdversario = is.next();
+            posXAd = is.nextInt();
+            posYAd = is.nextInt(); 
             
             // n consigo usar um array aq
-            platX1  = is.readInt();
-            platY1=  is.readInt();
-            platX2  = is.readInt();
-            platY2=  is.readInt();
-            platX3  = is.readInt();
-            platY3=  is.readInt();
-            platX4  = is.readInt();
-            platY4=  is.readInt();
+           platX1 = is.nextInt();
+           platY1 = is.nextInt();
+           
+           platX2 = is.nextInt();
+           platY2 = is.nextInt();
+           
+           platX3 = is.nextInt();
+           platY3 = is.nextInt();
+           platX4 = is.nextInt();
+           platY4 = is.nextInt();
+            
+            // recebendo posições das bombas
+            bombaX0 = is.nextInt();
+            bombaY0 = is.nextInt();
+            
+            bombaX1 = is.nextInt();
+            bombaY1 = is.nextInt();
+            
+            bombaX2 = is.nextInt();
+            bombaY2 = is.nextInt();
+            
+            bombaX3 = is.nextInt();           
+            bombaY3 = is.nextInt();
+            
             repaint();
           }
-        } catch (IOException ex) {
+        } catch (Exception ex) {
           // coloque um JOptionPane para mostrar esta mensagem de erro
-          System.err.println("O servidor interrompeu a comunicação");
-          
+        	JOptionPane.showMessageDialog(null, ex, "Erro", JOptionPane.ERROR_MESSAGE);
           System.exit(1);
         }
       }
@@ -154,19 +178,19 @@ class ClienteRede extends JFrame {
       public void keyPressed(KeyEvent e) {
         try {
         	 if (e.getKeyCode()==40){
-        		 os.writeChar('B');
+        		 os.println("B");
              }
              //Seta P cima        
              if (e.getKeyCode()==38){
-            	 os.writeChar('C');
+            	 os.println("C");
              }
              //Seta P direita
              if (e.getKeyCode()==39){
-            	os.writeChar('D');
+            	os.println("D");
              }
              //Seta P/ esquerda
              if (e.getKeyCode()==37){
-            	 os.writeChar('E');
+            	 os.println("E");
              }
            
         
@@ -176,10 +200,10 @@ class ClienteRede extends JFrame {
           // comportamento do jogador poderia ser enviado dependendo da
           // dinâmica do jogo
 
-        } catch (IOException ex) {
+        } catch (Exception ex) {
           // coloque um JOptionPane para mostrar esta mensagem de erro
           System.err.println("O servidor interrompeu a comunicação");
-          
+          JOptionPane.showMessageDialog(null, ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
           System.exit(1);
         }
         
